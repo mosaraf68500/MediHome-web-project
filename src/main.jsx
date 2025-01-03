@@ -16,6 +16,7 @@ import Admin_Login from './components/Admin_Login/Admin_Login.jsx';
 import Doctor_Login from './components/Doctor_Login/Doctor_Login.jsx';
 import Appointment from './components/Appointment/Appointment.jsx';
 import Doctors from './components/Doctors/Doctors.jsx';
+import AuthProvider from './components/AuthProvider/AuthProvider.jsx';
 
 
 const router = createBrowserRouter([
@@ -70,7 +71,9 @@ const router = createBrowserRouter([
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-        <RouterProvider router={router} />
+       <AuthProvider>
+       <RouterProvider router={router} />
+       </AuthProvider>
 
   </StrictMode>,
 )

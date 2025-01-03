@@ -2,10 +2,12 @@ import { NavLink } from "react-router-dom";
 import { FcGoogle } from "react-icons/fc";
 import { GoogleAuthProvider, signInWithEmailAndPassword, signInWithPopup, signOut, sendEmailVerification, sendPasswordResetEmail } from "firebase/auth";
 import { auth } from "../../firebase.init";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import Swal from "sweetalert2";
+import { AuthContext } from "../AuthProvider/AuthProvider";
 
 const User_Login = () => {
+    const{signInUser}=useContext(AuthContext)
   const [user, setuser] = useState(null);
 
   const UserProvider = new GoogleAuthProvider();
@@ -92,7 +94,7 @@ const User_Login = () => {
     const email = form.email.value;
     const password = form.password.value;
 
-    signInWithEmailAndPassword(auth, email, password)
+    signInUser( email, password)
       .then((result) => {
         if (!result.user.emailVerified) {
           Swal.fire({

@@ -1,11 +1,13 @@
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { NavLink } from "react-router-dom";
 import { auth } from "../../firebase.init";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import Swal from "sweetalert2";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import AuthProvider, { AuthContext } from "../AuthProvider/AuthProvider";
 
 const User_Register = () => {
+    const {createUser}=useContext(AuthContext)
   const [errorMessage, setErrorMessage] = useState("");
   const [showPassword, setshowPassword] = useState(false);
 
@@ -52,7 +54,7 @@ const User_Register = () => {
       return;
     }
 
-    createUserWithEmailAndPassword(auth, email, password)
+    createUser( email, password)
       .then((result) => {
         console.log(result);
         Swal.fire({
@@ -62,7 +64,7 @@ const User_Register = () => {
           confirmButtonText: "Cool",
         });
         // email verification
-        
+
         sendEmailVerification(auth.currentUser).then(() => {
           console.log("email verification done!");
         });
