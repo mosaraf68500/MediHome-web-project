@@ -1,44 +1,59 @@
-import { createUserWithEmailAndPassword, onAuthStateChanged, signInWithEmailAndPassword } from "firebase/auth";
-import { createContext, useState } from "react";
+import {
+  createUserWithEmailAndPassword,
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  signOut,
+} from "firebase/auth";
+import { createContext, useEffect, useState } from "react";
 import { auth } from "../../firebase.init";
 
-
-export const AuthContext = createContext(null); // Corrected typo in context name
+export const AuthContext = createContext(null);
 
 const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
+  const[Loading, setLoading]=useState(true);
 
-    const[user, setUser]=useState(null);
+  // Create user (registration)
+  const createUser = (email, password) => {
+    setLoading(true);
 
-// create user or registetion page
+    return createUserWithEmailAndPassword(auth, email, password);
+  };
 
-const createUser=(email, password)=>{
-    return createUserWithEmailAndPassword(auth,email,password);
-}
+  // Sign in user (login)
+  const signInUser = (email, password) => {
+    setLoading(true);
 
-// signIN user or login user
+    return signInWithEmailAndPassword(auth, email, password);
+  };
 
-const signInUser=(email,password)=>{
-    return signInWithEmailAndPassword(auth,email,password);
-}
+  // Sign out user (logout)
+  const signOutUser = () => {
+    setLoading(true);
 
-// onstatechange
-onAuthStateChanged(auth,currentUser=>{
-    if(currentUser){
-        console.log("currently logged user", currentUser)
-        setUser(currentUser)
-    }
-    else{
-        console.log('no user logged in')
-        setUser(null)
-    }
-})
+    return signOut(auth);
+  };
 
-const name='ami tmi';
+  // Track authentication state changes
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      console.log("Currently logged in user:", currentUser);
+      setUser(currentUser);
+      setLoading(false)
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, []);
+
+  // Provide authentication methods and user state
   const AuthInfo = {
-    name,
+    user,
     createUser,
     signInUser,
-    user
+    signOutUser,
+    Loading,
   };
 
   return (

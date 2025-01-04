@@ -17,6 +17,7 @@ import Doctor_Login from './components/Doctor_Login/Doctor_Login.jsx';
 import Appointment from './components/Appointment/Appointment.jsx';
 import Doctors from './components/Doctors/Doctors.jsx';
 import AuthProvider from './components/AuthProvider/AuthProvider.jsx';
+import PrivateRoute from './components/PrivateRoute/PrivateRoute.jsx';
 
 
 const router = createBrowserRouter([
@@ -31,7 +32,7 @@ const router = createBrowserRouter([
       },
       {
         path:"appointment",
-        element:<Appointment></Appointment>
+        element:<PrivateRoute><Appointment></Appointment></PrivateRoute>
 
       },
 

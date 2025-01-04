@@ -1,19 +1,25 @@
-import { NavLink } from "react-router-dom";
+import { Navigate, NavLink } from "react-router-dom";
 import { FcGoogle } from "react-icons/fc";
-import { GoogleAuthProvider, signInWithEmailAndPassword, signInWithPopup, signOut, sendEmailVerification, sendPasswordResetEmail } from "firebase/auth";
+import {
+  GoogleAuthProvider,
+  sendEmailVerification,
+  sendPasswordResetEmail,
+  signInWithPopup,
+} from "firebase/auth";
 import { auth } from "../../firebase.init";
 import { useContext, useState } from "react";
 import Swal from "sweetalert2";
 import { AuthContext } from "../AuthProvider/AuthProvider";
 
 const User_Login = () => {
-    const{signInUser}=useContext(AuthContext)
-  const [user, setuser] = useState(null);
+  const { signInUser, signOutUser } = useContext(AuthContext);
+  const [user, setUser] = useState(null);
+  const [redirectToHome, setRedirectToHome] = useState(false); // State for handling redirection
 
-  const UserProvider = new GoogleAuthProvider();
+  const userProvider = new GoogleAuthProvider();
 
   const handleUserLoginWithGoogle = () => {
-    signInWithPopup(auth, UserProvider)
+    signInWithPopup(auth, userProvider)
       .then((result) => {
         if (!result.user.emailVerified) {
           Swal.fire({
@@ -46,13 +52,14 @@ const User_Login = () => {
             }
           });
         } else {
-          setuser(result.user);
+          setUser(result.user);
           Swal.fire({
             title: "Login Successful!",
             text: `Welcome, ${result.user.displayName}!`,
             icon: "success",
             confirmButtonText: "OK",
           });
+          setRedirectToHome(true); // Set redirection flag to true
         }
       })
       .catch((error) => {
@@ -66,35 +73,13 @@ const User_Login = () => {
       });
   };
 
-  const handleSignOut = () => {
-    signOut(auth)
-      .then(() => {
-        setuser(null);
-        Swal.fire({
-          title: "Signed Out",
-          text: "You have successfully signed out.",
-          icon: "success",
-          confirmButtonText: "OK",
-        });
-      })
-      .catch((error) => {
-        console.error(error);
-        Swal.fire({
-          title: "Error",
-          text: "Sign-out failed. Please try again.",
-          icon: "error",
-          confirmButtonText: "Retry",
-        });
-      });
-  };
-
   const handleLogin = (e) => {
     e.preventDefault();
     const form = e.target;
     const email = form.email.value;
     const password = form.password.value;
 
-    signInUser( email, password)
+    signInUser(email, password)
       .then((result) => {
         if (!result.user.emailVerified) {
           Swal.fire({
@@ -104,7 +89,8 @@ const User_Login = () => {
             showCancelButton: true,
             confirmButtonText: "Resend Verification Email",
             cancelButtonText: "Close",
-          }).then((res) => {
+          })
+          .then((res) => {
             if (res.isConfirmed) {
               sendEmailVerification(result.user)
                 .then(() => {
@@ -127,7 +113,7 @@ const User_Login = () => {
             }
           });
         } else {
-          setuser(result.user);
+          setUser(result.user);
           Swal.fire({
             title: "Login Successful!",
             text: `Welcome back, ${result.user.email}!`,
@@ -135,6 +121,9 @@ const User_Login = () => {
             confirmButtonText: "OK",
           });
           form.reset();
+          
+          // Set redirection flag to true
+          setRedirectToHome(true);
         }
       })
       .catch((error) => {
@@ -179,6 +168,33 @@ const User_Login = () => {
     });
   };
 
+  const handleSignOut = () => {
+    signOutUser()
+      .then(() => {
+        setUser(null); // Clear the user state
+        Swal.fire({
+          title: "Logged Out",
+          text: "You have been successfully logged out.",
+          icon: "success",
+          confirmButtonText: "OK",
+        });
+      })
+      .catch((error) => {
+        console.error("Sign Out Error:", error);
+        Swal.fire({
+          title: "Error",
+          text: "Failed to log out. Please try again.",
+          icon: "error",
+          confirmButtonText: "Retry",
+        });
+      });
+  };
+
+  // If redirection flag is true, redirect to home page
+  if (redirectToHome) {
+    return <Navigate to="/" />;
+  }
+
   return (
     <div className="bg-slate-200 py-10">
       <div className="lg:w-2/5 w-11/12 mx-auto py-10 bg-white rounded-xl shadow-lg">
@@ -187,7 +203,10 @@ const User_Login = () => {
         </div>
         <form onSubmit={handleLogin} className="px-10 space-y-3">
           <div>
-            <label htmlFor="email" className="text-lg">Email:</label> <br />
+            <label htmlFor="email" className="text-lg">
+              Email:
+            </label>{" "}
+            <br />
             <input
               className="border w-full h-[40px] rounded-2xl px-5 bg-slate-100"
               type="email"
@@ -197,7 +216,10 @@ const User_Login = () => {
             />
           </div>
           <div>
-            <label htmlFor="password" className="text-lg">Password:</label> <br />
+            <label htmlFor="password" className="text-lg">
+              Password:
+            </label>{" "}
+            <br />
             <input
               className="border w-full h-[40px] rounded-2xl px-5 bg-slate-100"
               type="password"
@@ -207,12 +229,22 @@ const User_Login = () => {
             />
           </div>
           <div>
-            <button
-              type="submit"
-              className="w-full h-[40px] bg-[#2563EB] text-white font-bold rounded-xl"
-            >
-              Login
-            </button>
+            {user ? (
+              <button
+                type="button"
+                onClick={handleSignOut}
+                className="btn btn-xs sm:btn-sm md:btn-md lg:btn-lg"
+              >
+                SignOut
+              </button>
+            ) : (
+              <button
+                type="submit"
+                className="w-full h-[40px] bg-[#2563EB] text-white font-bold rounded-xl"
+              >
+                Login
+              </button>
+            )}
           </div>
           <div className="text-center">
             <button
@@ -233,24 +265,14 @@ const User_Login = () => {
           </div>
           <div className="divider"></div>
           <div className="text-center">
-            {user ? (
-              <button
-                type="button"
-                onClick={handleSignOut}
-                className="btn btn-xs sm:btn-sm md:btn-md lg:btn-lg"
-              >
-                SignOut
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={handleUserLoginWithGoogle}
-                className="btn btn-xs sm:btn-sm md:btn-md lg:btn-lg flex items-center justify-center"
-              >
-                <FcGoogle className="mr-2" />
-                Login With Google
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={handleUserLoginWithGoogle}
+              className="btn btn-xs sm:btn-sm md:btn-md lg:btn-lg flex items-center justify-center"
+            >
+              <FcGoogle className="mr-2" />
+              Login With Google
+            </button>
             {user && <h4>{user.displayName}</h4>}
           </div>
         </form>

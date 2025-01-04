@@ -1,5 +1,5 @@
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { auth } from "../../firebase.init";
 import { useContext, useState } from "react";
 import Swal from "sweetalert2";
@@ -7,9 +7,10 @@ import { FaEye, FaEyeSlash } from "react-icons/fa";
 import AuthProvider, { AuthContext } from "../AuthProvider/AuthProvider";
 
 const User_Register = () => {
-    const {createUser}=useContext(AuthContext)
+  const { createUser } = useContext(AuthContext);
   const [errorMessage, setErrorMessage] = useState("");
-  const [showPassword, setshowPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate(); // Hook for navigation
 
   const handleRegister = (e) => {
     e.preventDefault();
@@ -24,7 +25,7 @@ const User_Register = () => {
 
     if (password.length < 6) {
       Swal.fire({
-        title: "wrong Password!",
+        title: "Wrong Password!",
         text: "Password should be 6 characters or longer.",
         icon: "warning",
         confirmButtonText: "Okay",
@@ -36,7 +37,7 @@ const User_Register = () => {
       /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>])[A-Za-z\d!@#$%^&*(),.?":{}|<>]{6,}$/;
     if (!passwordValidation.test(password)) {
       Swal.fire({
-        title: "wrong Password!",
+        title: "Wrong Password!",
         text: "Password must be at least 6 characters long, include one uppercase letter, one lowercase letter, one number, and one special character.",
         icon: "warning",
         confirmButtonText: "Okay",
@@ -54,7 +55,7 @@ const User_Register = () => {
       return;
     }
 
-    createUser( email, password)
+    createUser(email, password)
       .then((result) => {
         console.log(result);
         Swal.fire({
@@ -63,13 +64,15 @@ const User_Register = () => {
           icon: "success",
           confirmButtonText: "Cool",
         });
-        // email verification
-
+        // Email verification
         sendEmailVerification(auth.currentUser).then(() => {
-          console.log("email verification done!");
+          console.log("Email verification done!");
         });
 
         form.reset(); // Reset form after successful registration
+
+        // Redirect to home page
+        navigate("/"); // Redirect to the home page after successful registration
       })
       .catch((error) => {
         console.log(error);
@@ -141,7 +144,7 @@ const User_Register = () => {
               <button
                 onClick={(e) => {
                   e.preventDefault(); // Prevent form submission
-                  setshowPassword(!showPassword); // Toggle password visibility
+                  setShowPassword(!showPassword); // Toggle password visibility
                 }}
                 className="btn btn-xs absolute right-2 top-10"
               >
@@ -163,11 +166,10 @@ const User_Register = () => {
                 className="w-full bg-slate-100 px-4 py-2 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Confirm your password"
               />
-
               <button
                 onClick={(e) => {
                   e.preventDefault(); // Prevent form submission
-                  setshowPassword(!showPassword); // Toggle password visibility
+                  setShowPassword(!showPassword); // Toggle password visibility
                 }}
                 className="btn btn-xs absolute right-2 top-11"
               >
