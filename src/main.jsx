@@ -18,6 +18,14 @@ import Appointment from './components/Appointment/Appointment.jsx';
 import Doctors from './components/Doctors/Doctors.jsx';
 import AuthProvider from './components/AuthProvider/AuthProvider.jsx';
 import PrivateRoute from './components/PrivateRoute/PrivateRoute.jsx';
+import AddDoctors from './components/AddDoctors/AddDoctors.jsx';
+import Add from './components/Add/Add.jsx';
+import AboutHospital from './components/AboutHospital/AboutHospital.jsx';
+import ReadMorebtn from './components/ReadMorebtn/ReadMorebtn.jsx';
+import LatestNews from './components/LatestNews/LatestNews.jsx';
+import MoreLatestNews from './components/MoreLatestNews/MoreLatestNews.jsx';
+import AskQuestion from './components/AskQuestion/AskQuestion.jsx';
+import Contact from './components/Contact/Contact.jsx';
 
 
 const router = createBrowserRouter([
@@ -62,6 +70,43 @@ const router = createBrowserRouter([
         path:"doctor_login",
 
         element:<Doctor_Login></Doctor_Login>
+      },
+      {
+        path:"add_doctors",
+        element:<AddDoctors></AddDoctors>,
+      },
+
+      {
+        path:"add",
+        element:<Add></Add>
+      },
+
+      {
+        path:"hospital",
+        element:<AboutHospital></AboutHospital>,
+      },
+
+      {
+        path:"readmorebtn",
+        element:<ReadMorebtn></ReadMorebtn>
+      },
+      {
+        path:'latest_news',
+        element:<LatestNews></LatestNews>
+      },
+
+      {
+        path:'morelatestnews',
+        element:<MoreLatestNews></MoreLatestNews>,
+      },
+
+      {
+        path:"askqusetion",
+        element:<AskQuestion></AskQuestion>
+      },
+      {
+        path:"contact",
+        element:<Contact></Contact>
       }
     ]
   },

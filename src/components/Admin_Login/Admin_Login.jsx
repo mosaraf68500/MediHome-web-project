@@ -1,77 +1,24 @@
-import { Navigate, NavLink } from "react-router-dom";
-import { FcGoogle } from "react-icons/fc";
-import {
-  GoogleAuthProvider,
-  sendEmailVerification,
-  sendPasswordResetEmail,
-  signInWithPopup,
-} from "firebase/auth";
-import { auth } from "../../firebase.init";
-import { useContext, useState } from "react";
+import { Navigate } from "react-router-dom";
+import { useState, useEffect, useContext } from "react";
 import Swal from "sweetalert2";
 import { AuthContext } from "../AuthProvider/AuthProvider";
+import { auth } from "../../firebase.init";
+import { onAuthStateChanged, signInWithEmailAndPassword } from "firebase/auth";
 
-const Admin_Login = () =>  {
+const Admin_Login = () => {
   const { signInUser, signOutUser } = useContext(AuthContext);
   const [user, setUser] = useState(null);
-  const [redirectToHome, setRedirectToHome] = useState(false); // State for handling redirection
+  const [redirectToNamePage, setRedirectToNamePage] = useState(false); // State for handling redirection
 
-  const userProvider = new GoogleAuthProvider();
+  useEffect(() => {
+    // Set up listener for Firebase authentication state change
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser); // Update user state
+    });
 
-  const handleUserLoginWithGoogle = () => {
-    signInWithPopup(auth, userProvider)
-      .then((result) => {
-        if (!result.user.emailVerified) {
-          Swal.fire({
-            title: "Email Not Verified",
-            text: "Please verify your email before logging in.",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonText: "Resend Verification Email",
-            cancelButtonText: "Close",
-          }).then((res) => {
-            if (res.isConfirmed) {
-              sendEmailVerification(result.user)
-                .then(() => {
-                  Swal.fire({
-                    title: "Verification Email Sent",
-                    text: "Check your email for the verification link.",
-                    icon: "info",
-                    confirmButtonText: "OK",
-                  });
-                })
-                .catch((error) => {
-                  console.error(error);
-                  Swal.fire({
-                    title: "Error",
-                    text: "Failed to send verification email. Please try again later.",
-                    icon: "error",
-                    confirmButtonText: "OK",
-                  });
-                });
-            }
-          });
-        } else {
-          setUser(result.user);
-          Swal.fire({
-            title: "Login Successful!",
-            text: `Welcome, ${result.user.displayName}!`,
-            icon: "success",
-            confirmButtonText: "OK",
-          });
-          setRedirectToHome(true); // Set redirection flag to true
-        }
-      })
-      .catch((error) => {
-        console.error(error);
-        Swal.fire({
-          title: "Login Failed",
-          text: "Google login failed. Please try again!",
-          icon: "error",
-          confirmButtonText: "Retry",
-        });
-      });
-  };
+    // Cleanup listener on unmount
+    return () => unsubscribe();
+  }, []);
 
   const handleLogin = (e) => {
     e.preventDefault();
@@ -79,93 +26,42 @@ const Admin_Login = () =>  {
     const email = form.email.value;
     const password = form.password.value;
 
-    signInUser(email, password)
-      .then((result) => {
-        if (!result.user.emailVerified) {
-          Swal.fire({
-            title: "Email Not Verified",
-            text: "Please verify your email before logging in.",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonText: "Resend Verification Email",
-            cancelButtonText: "Close",
-          })
-          .then((res) => {
-            if (res.isConfirmed) {
-              sendEmailVerification(result.user)
-                .then(() => {
-                  Swal.fire({
-                    title: "Verification Email Sent",
-                    text: "Check your email for the verification link.",
-                    icon: "info",
-                    confirmButtonText: "OK",
-                  });
-                })
-                .catch((error) => {
-                  console.error(error);
-                  Swal.fire({
-                    title: "Error",
-                    text: "Failed to send verification email. Please try again later.",
-                    icon: "error",
-                    confirmButtonText: "OK",
-                  });
-                });
-            }
-          });
-        } else {
-          setUser(result.user);
-          Swal.fire({
-            title: "Login Successful!",
-            text: `Welcome back, ${result.user.email}!`,
-            icon: "success",
-            confirmButtonText: "OK",
-          });
-          form.reset();
-          
-          // Set redirection flag to true
-          setRedirectToHome(true);
-        }
-      })
-      .catch((error) => {
-        console.error(error);
-        Swal.fire({
-          title: "Login Failed",
-          text: "Check your credentials and try again.",
-          icon: "error",
-          confirmButtonText: "Retry",
-        });
-      });
-  };
+    // Fixed email and password check
+    const fixedEmail = "mosaraf.cse8.bu@gmail.com";
+    const fixedPassword = "12345";
 
-  const handleForgotPassword = () => {
-    Swal.fire({
-      title: "Reset Password",
-      input: "email",
-      inputLabel: "Enter your email address",
-      inputPlaceholder: "example@example.com",
-      confirmButtonText: "Send Reset Link",
-    }).then((result) => {
-      if (result.isConfirmed) {
-        sendPasswordResetEmail(auth, result.value)
-          .then(() => {
-            Swal.fire({
-              title: "Email Sent",
-              text: "Check your email for the password reset link.",
-              icon: "success",
-              confirmButtonText: "OK",
-            });
-          })
-          .catch((error) => {
-            console.error(error);
-            Swal.fire({
-              title: "Error",
-              text: "Failed to send reset email. Please try again.",
-              icon: "error",
-              confirmButtonText: "Retry",
-            });
+    // If email and password match, log in
+    if (email === fixedEmail && password === fixedPassword) {
+      Swal.fire({
+        title: "Login Successful!",
+        text: `Welcome back, ${email}!`,
+        icon: "success",
+        confirmButtonText: "OK",
+      });
+
+      // Sign in with Firebase authentication
+      signInWithEmailAndPassword(auth, email, password)
+        .then(() => {
+          // Set redirection flag to true after successful login
+          setRedirectToNamePage(true);
+        })
+        .catch((error) => {
+          console.error(error);
+          Swal.fire({
+            title: "Login Failed",
+            text: "Check your credentials and try again.",
+            icon: "error",
+            confirmButtonText: "Retry",
           });
-      }
-    });
+        });
+    } else {
+      Swal.fire({
+        title: "Invalid Credentials",
+        text: "Please check your email and password.",
+        icon: "error",
+        confirmButtonText: "Retry",
+      });
+    }
   };
 
   const handleSignOut = () => {
@@ -190,16 +86,16 @@ const Admin_Login = () =>  {
       });
   };
 
-  // If redirection flag is true, redirect to home page
-  if (redirectToHome) {
-    return <Navigate to="/" />;
+  // If redirection flag is true, redirect to name page
+  if (redirectToNamePage) {
+    return <Navigate to="/name" />;
   }
 
   return (
     <div className="bg-slate-200 py-10">
       <div className="lg:w-2/5 w-11/12 mx-auto py-10 bg-white rounded-xl shadow-lg">
         <div>
-          <h1 className="text-2xl font-bold text-center">Admin Login</h1>
+          <h1 className="text-2xl font-bold text-center">User Login</h1>
         </div>
         <form onSubmit={handleLogin} className="px-10 space-y-3">
           <div>
@@ -245,35 +141,6 @@ const Admin_Login = () =>  {
                 Login
               </button>
             )}
-          </div>
-          <div className="text-center">
-            <button
-              type="button"
-              onClick={handleForgotPassword}
-              className="text-primary underline mt-2"
-            >
-              Forgot Password?
-            </button>
-          </div>
-          <div className="text-center">
-            <p>
-              Don't have an account?{" "}
-              <NavLink to="/user_register" className="text-primary">
-                Register Now
-              </NavLink>
-            </p>
-          </div>
-          <div className="divider"></div>
-          <div className="text-center">
-            <button
-              type="button"
-              onClick={handleUserLoginWithGoogle}
-              className="btn btn-xs sm:btn-sm md:btn-md lg:btn-lg flex items-center justify-center"
-            >
-              <FcGoogle className="mr-2" />
-              Login With Google
-            </button>
-            {user && <h4>{user.displayName}</h4>}
           </div>
         </form>
       </div>
